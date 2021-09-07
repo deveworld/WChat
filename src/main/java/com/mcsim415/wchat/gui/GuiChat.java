@@ -5,7 +5,11 @@ import com.mcsim415.wchat.thread.ServerThread;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.text.Document;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -56,6 +60,9 @@ public class GuiChat {
             if (sThread != null) {
                 sThread.interrupt();
             }
+            if (cThread != null) {
+                cThread.interrupt();
+            }
             WChatGui.getInstance().home();
         });
 
@@ -64,29 +71,94 @@ public class GuiChat {
         xBox1.add(Box.createHorizontalGlue());
         xBox1.add(exitButton);
 
-        JTextField sendText = new JTextField();
-        sendText.setFont(customFont);
-        sendText.setPreferredSize(new Dimension(700, 35));
-        sendText.setMaximumSize(sendText.getPreferredSize());
-        sendText.addKeyListener(new KeyAdapter() {
+        JTextArea sendTextArea = new JTextArea();
+        sendTextArea.setFont(sendTextArea.getFont().deriveFont(20f));
+        sendTextArea.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    sendChat(sendText.getText());
-                    sendText.setText("");
+                if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                    e.consume();
+                    KeyboardFocusManager.
+                            getCurrentKeyboardFocusManager().focusNextComponent();
+                } else if (e.getKeyCode() == KeyEvent.VK_TAB
+                        &&  e.isShiftDown()) {
+                    e.consume();
+                    KeyboardFocusManager.
+                            getCurrentKeyboardFocusManager().focusPreviousComponent();
+                }
+            }
+        });
+        int condition = JComponent.WHEN_FOCUSED;
+        InputMap inputMap = sendTextArea.getInputMap(condition);
+        ActionMap actionMap = sendTextArea.getActionMap();
+
+        UndoManager undoManager = new UndoManager();
+        Document doc = sendTextArea.getDocument();
+        doc.addUndoableEditListener(e -> undoManager.addEdit(e.getEdit()));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK), "Undo");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK), "Redo");
+
+        actionMap.put("Undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (undoManager.canUndo()) {
+                        undoManager.undo();
+                    }
+                } catch (CannotUndoException exp) {
+                    exp.printStackTrace();
+                }
+            }
+        });
+        actionMap.put("Redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (undoManager.canRedo()) {
+                        undoManager.redo();
+                    }
+                } catch (CannotUndoException exp) {
+                    exp.printStackTrace();
                 }
             }
         });
 
+        KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+        inputMap.put(enterKey, enterKey.toString());
+        actionMap.put(enterKey.toString(), new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendChat(sendTextArea.getText());
+                sendTextArea.setText("");
+            }
+        });
+
+        KeyStroke ctrlEnterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK);
+        inputMap.put(ctrlEnterKey, ctrlEnterKey.toString());
+        actionMap.put(ctrlEnterKey.toString(), new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendTextArea.append("\n");
+            }
+        });
+
+        JScrollPane sendText = new JScrollPane(sendTextArea);
+        sendText.setPreferredSize(new Dimension(700, 70));
+        sendText.setMaximumSize(new Dimension(700, 70));
+        sendText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sendText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        sendText.getVerticalScrollBar().setUnitIncrement(1);
+
         try {
-            Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("send.png"))).getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("send.png"))).getScaledInstance(50, 50, Image.SCALE_SMOOTH);
             sendButton = new JButton(new ImageIcon(img));
             sendButton.setBackground(new Color(255, 255, 255));
         } catch (IOException e) {
             sendButton = new JButton("Send");
             sendButton.setFont(customFont);
         }
-        sendButton.addActionListener(e -> { sendChat(sendText.getText()); sendText.setText(""); });
+        sendButton.addActionListener(e -> { sendChat(sendTextArea.getText()); sendTextArea.setText(""); });
 
         xBox2.add(sendText);
         xBox2.add(sendButton);
@@ -115,7 +187,6 @@ public class GuiChat {
     }
 
     public void sendChat(String text) {
-        text = text.trim();
         if (!Objects.equals(text, "")) {
             if (Objects.equals(ip, "Server Open at - Local")) {
                 if (sThread.chatSendThread != null) {

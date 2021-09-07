@@ -13,6 +13,7 @@ public class SHA256 {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
+            System.out.print("Couldn't Find SHA-256 Instance.");
             return "";
         }
         md.update(data);

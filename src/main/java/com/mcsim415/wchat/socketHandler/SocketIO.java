@@ -40,6 +40,7 @@ public class SocketIO {
         } catch (IOException e) {
             throw e;
         } catch (Throwable e) {
+            System.out.print("Socket Receive Fail.");
             return "";
         }
     }
@@ -53,7 +54,9 @@ public class SocketIO {
         sender.write(data);
     }
 
-    public void close() throws IOException {
-        socket.close();
+    public void close() {
+        try {
+            socket.close();
+        } catch (IOException ignored) {}
     }
 }

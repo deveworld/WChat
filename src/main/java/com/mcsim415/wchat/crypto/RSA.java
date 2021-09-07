@@ -49,8 +49,10 @@ public class RSA {
         String[] encryptedMsgs = new String[encodedMsgs.length];
         int i = 0;
         for (String encodedMsg:encodedMsgs) {
-            encryptedMsgs[i] = new BigInteger(encodedMsg).modPow(e, n).toString();
-            i++;
+            if (encodedMsg != null) {
+                encryptedMsgs[i] = new BigInteger(encodedMsg).modPow(e, n).toString();
+                i++;
+            }
         }
         return encryptedMsgs;
     }
@@ -65,7 +67,14 @@ public class RSA {
         StringBuilder msg = new StringBuilder();
         int chunk = 0;
         while (encodedMsg.length() > chunk) {
-            msg.append((char) Integer.parseInt(encodedMsg.substring(chunk, chunk + 7)));
+            msg.append((char) Integer.parseInt(encodedMsg.substring(chunk, chunk + 7))); // RSA.java:70
+
+            // Exception in thread "Thread-2" java.lang.StringIndexOutOfBoundsException: begin 301, end 308, length 307
+            // at java.base/java.lang.String.checkBoundsBeginEnd(String.java:3751)
+            // at java.base/java.lang.String.substring(String.java:1907)
+            // at com.mcsim415.wchat.crypto.RSA.decodeMsg(RSA.java:70)
+            // at com.mcsim415.wchat.crypto.RSA.decrypt(RSA.java:62)
+            // at com.mcsim415.wchat.thread.chatReceiveThread.run(chatReceiveThread.java:47)
             chunk += 7;
         }
         return msg.toString();
@@ -73,20 +82,48 @@ public class RSA {
 
     private String[] encodeMsg(String msg) {
         int length;
+        int nLen = n.toString().length()-1;
+
         length = (7*msg.length());
-        if (length > n.toString().length()) {
-            length = (length / n.toString().length());
+        if (length > nLen) {
+            length = (int) Math.ceil(length / (double) nLen);
         } else {
-            length = 0;
+            length = 1;
         }
-        length++;
+
         String[] encodedMsg = new String[length];
         int chunk = 0;
         encodedMsg[0] = "1";
         for (int i=0; i<msg.length(); i++) {
-            if (encodedMsg[chunk].length()+7 > n.toString().length()) {
+            if (encodedMsg[chunk].length()+7 > nLen && !(msg.length()-8 <= i)) {
                 chunk++;
-                encodedMsg[chunk] = "1";
+                encodedMsg[chunk] = "1"; // RSA.java:93
+
+                // TODO: FIX THESE ERROR ( Need improving encode algorithm, easier faster and efficiently. )
+                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10
+                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
+                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
+                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
+                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
+                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
+                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 12 out of bounds for length 12
+                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
+                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
+                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
+                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
+                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
+                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 12 out of bounds for length 12
+                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
+                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
+                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
+                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
+                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
+                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10
+                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
+                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
+                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
+                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
+                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
             }
             encodedMsg[chunk] += String.format("%07d", (int) msg.charAt(i));
         }

@@ -7,7 +7,6 @@ import com.mcsim415.wchat.gui.WChatGui;
 import com.mcsim415.wchat.socketHandler.ServerSocketHandler;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
 
 public class ServerThread extends Thread {

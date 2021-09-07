@@ -2,8 +2,8 @@ package com.mcsim415.wchat.gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.GeneralPath;
+import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
 import java.io.Serial;
 
 public class GuiChatBubble extends JPanel {
@@ -20,26 +20,42 @@ public class GuiChatBubble extends JPanel {
 
     @Override
     protected void paintComponent(final Graphics g) {
-        final Graphics2D graphics2D = (Graphics2D) g;
-        RenderingHints qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics2D.setRenderingHints(qualityHints);
-        graphics2D.setPaint(new Color(80, 150, 180));
-        int width = getWidth();
-        int height = getHeight();
-        GeneralPath path = new GeneralPath();
-        path.moveTo(5, 10);
-        path.curveTo(5, 10, 7, 5, 0, 0);
-        path.curveTo(0, 0, 12, 0, 12, 5);
-        path.curveTo(12, 5, 12, 0, 20, 0);
-        path.lineTo(width - 10, 0);
-        path.curveTo(width - 10, 0, width, 0, width, 10);
-        path.lineTo(width, height - 10);
-        path.curveTo(width, height - 10, width, height, width - 10, height);
-        path.lineTo(15, height);
-        path.curveTo(15, height, 5, height, 5, height - 10);
-        path.lineTo(5, 15);
-        path.closePath();
-        graphics2D.fill(path);
+        int radius = 10;
+        int arrowSize = 12;
+        int strokeThickness = 3;
+        int padding = strokeThickness / 2;
+
+        final Graphics2D g2d = (Graphics2D) g;
+        if (align == LEFT) {
+            g2d.setColor(Color.WHITE);
+        } else {
+            g2d.setColor(Color.ORANGE);
+        }
+        int bottomLineY = getHeight() - strokeThickness;
+        int width = getWidth() - arrowSize - (strokeThickness * 2);
+        RoundRectangle2D.Double rect;
+        if (align == LEFT) {
+            int x = padding + strokeThickness + arrowSize;
+            g2d.fillRect(x, padding, width, bottomLineY);
+            rect = new RoundRectangle2D.Double(x, padding, width, bottomLineY, radius, radius);
+        } else {
+            g2d.fillRect(padding, padding, width, bottomLineY);
+            rect = new RoundRectangle2D.Double(padding, padding, width, bottomLineY, radius, radius);
+        }
+        g2d.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
+        g2d.setStroke(new BasicStroke(strokeThickness));
+        Polygon arrow = new Polygon();
+        if (align == LEFT) {
+            arrow.addPoint(20, 8);
+            arrow.addPoint(0, 3);
+            arrow.addPoint(20, 12);
+        } else {
+            arrow.addPoint(width, 8);
+            arrow.addPoint(width + arrowSize, 3);
+            arrow.addPoint(width, 12);
+        }
+        Area area = new Area(rect);
+        area.add(new Area(arrow));
+        g2d.draw(area);
     }
 }

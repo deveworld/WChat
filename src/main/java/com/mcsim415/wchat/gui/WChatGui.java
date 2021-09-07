@@ -1,6 +1,8 @@
 package com.mcsim415.wchat.gui;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
 
 public class WChatGui extends JFrame {
     private static class LazyHolder {
@@ -13,12 +15,20 @@ public class WChatGui extends JFrame {
 
     private WChatGui() {
         super("WChat");
-        JPanel panel = new GuiMain().MainPanel;
-        setContentPane(panel);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setUndecorated(true);
+        try {
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (ClassNotFoundException | UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException e) {
+            e.printStackTrace();
+        }
+        getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         setSize(480, 750);
         setResizable(false);
         setLocationRelativeTo(null);
+
+        JPanel panel = new GuiMain().MainPanel;
+        setContentPane(panel);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
 

@@ -7,12 +7,12 @@ import com.mcsim415.wchat.gui.WChatGui;
 import com.mcsim415.wchat.socketHandler.ClientSocketHandler;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
 
 public class ClientThread extends Thread {
     private String ip, port;
     private GuiChat chatGui;
+    private ClientSocketHandler sockHandler;
     public chatSendThread chatSendThread;
 
     public void setParams(String _ip, String _port, GuiChat _chatGui) {
@@ -22,13 +22,23 @@ public class ClientThread extends Thread {
     }
 
     @Override
+    public void interrupt() {
+        super.interrupt();
+        try {
+            if (sockHandler.ClientSocket != null) {
+                sockHandler.ClientSocket.close();
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    @Override
     public void run() {
         super.run();
 
         JLabel firstLabel = chatGui.firstLabel;
         DHExchange dhe = new DHExchange();
 
-        ClientSocketHandler sockHandler = new ClientSocketHandler(ip, port);
+        sockHandler = new ClientSocketHandler(ip, port);
         if (sockHandler.connect()) {
             firstLabel.setText("<html>Connected to Server!<br>Prepare Encrypt...</html>");
         } else {

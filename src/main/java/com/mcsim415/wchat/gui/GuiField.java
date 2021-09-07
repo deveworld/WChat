@@ -2,6 +2,7 @@ package com.mcsim415.wchat.gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.InvocationTargetException;
@@ -98,12 +99,17 @@ public class GuiField {
         field.setFont(font);
         field.setPreferredSize(new Dimension(500, 30));
         field.setMaximumSize(field.getPreferredSize());
-        field.addKeyListener(new KeyAdapter() {
+        int condition = JComponent.WHEN_FOCUSED;
+        InputMap inputMap = field.getInputMap(condition);
+        ActionMap actionMap = field.getActionMap();
+
+        KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+        inputMap.put(enterKey, enterKey.toString());
+        actionMap.put(enterKey.toString(), new AbstractAction() {
             @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    checkValid(field, label);
-                }
+            public void actionPerformed(ActionEvent e) {
+                checkValid(field, label);
+                field.setText("");
             }
         });
 
