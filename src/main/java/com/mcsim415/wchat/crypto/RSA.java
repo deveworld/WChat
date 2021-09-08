@@ -50,7 +50,11 @@ public class RSA {
         int i = 0;
         for (String encodedMsg:encodedMsgs) {
             if (encodedMsg != null) {
-                encryptedMsgs[i] = new BigInteger(encodedMsg).modPow(e, n).toString();
+                if (i == 0) {
+                    encryptedMsgs[i] = encodedMsg;
+                } else {
+                    encryptedMsgs[i] = new BigInteger(encodedMsg).modPow(e, n).toString();
+                }
                 i++;
             }
         }
@@ -58,76 +62,42 @@ public class RSA {
     }
 
     public String decrypt(String encryptedMsg) {
-        BigInteger decryptedMsg = new BigInteger(encryptedMsg).modPow(d, n);
-        return decodeMsg(decryptedMsg);
+        return new BigInteger(encryptedMsg).modPow(d, n).toString();
     }
 
-    private String decodeMsg(BigInteger encodedIntMsg) {
-        String encodedMsg = encodedIntMsg.toString().substring(1);
-        StringBuilder msg = new StringBuilder();
-        int chunk = 0;
-        while (encodedMsg.length() > chunk) {
-            msg.append((char) Integer.parseInt(encodedMsg.substring(chunk, chunk + 7))); // RSA.java:70
-
-            // Exception in thread "Thread-2" java.lang.StringIndexOutOfBoundsException: begin 301, end 308, length 307
-            // at java.base/java.lang.String.checkBoundsBeginEnd(String.java:3751)
-            // at java.base/java.lang.String.substring(String.java:1907)
-            // at com.mcsim415.wchat.crypto.RSA.decodeMsg(RSA.java:70)
-            // at com.mcsim415.wchat.crypto.RSA.decrypt(RSA.java:62)
-            // at com.mcsim415.wchat.thread.chatReceiveThread.run(chatReceiveThread.java:47)
-            chunk += 7;
-        }
-        return msg.toString();
+    public String decodeMsg(String encodedMsg) {
+        return new String(new BigInteger(encodedMsg).toByteArray());
     }
 
     private String[] encodeMsg(String msg) {
-        int length;
+        int length, chunk = 1;
         int nLen = n.toString().length()-1;
 
-        length = (7*msg.length());
+        String encodedMsg = new BigInteger(msg.getBytes()).toString();
+        length = encodedMsg.length();
         if (length > nLen) {
             length = (int) Math.ceil(length / (double) nLen);
         } else {
             length = 1;
         }
+        length++;
 
-        String[] encodedMsg = new String[length];
-        int chunk = 0;
-        encodedMsg[0] = "1";
-        for (int i=0; i<msg.length(); i++) {
-            if (encodedMsg[chunk].length()+7 > nLen && !(msg.length()-8 <= i)) {
-                chunk++;
-                encodedMsg[chunk] = "1"; // RSA.java:93
-
-                // TODO: FIX THESE ERROR ( Need improving encode algorithm, easier faster and efficiently. )
-                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10
-                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
-                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
-                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
-                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
-                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
-                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 12 out of bounds for length 12
-                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
-                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
-                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
-                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
-                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
-                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 12 out of bounds for length 12
-                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
-                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
-                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
-                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
-                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
-                // Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10
-                // at com.mcsim415.wchat.crypto.RSA.encodeMsg(RSA.java:93)
-                // at com.mcsim415.wchat.crypto.RSA.encrypt(RSA.java:48)
-                // at com.mcsim415.wchat.thread.chatSendThread.sendChat(chatSendThread.java:28)
-                // at com.mcsim415.wchat.gui.GuiChat.sendChat(GuiChat.java:193)
-                // at com.mcsim415.wchat.gui.GuiChat$4.actionPerformed(GuiChat.java:132)
-            }
-            encodedMsg[chunk] += String.format("%07d", (int) msg.charAt(i));
+        String[] encodedMsgs = new String[length];
+        if (encodedMsg.charAt(0) == '-') {
+            encodedMsgs[0] = "-";
+            encodedMsg = encodedMsg.substring(1);
+        } else {
+            encodedMsgs[0] = "+";
         }
-        return encodedMsg;
+        for (int i = 0; i < encodedMsg.length()+1; i += nLen) {
+            if (i + nLen > encodedMsg.length()+1) {
+                encodedMsgs[chunk] = encodedMsg.substring(i);
+            } else {
+                encodedMsgs[chunk] = encodedMsg.substring(i, i + nLen);
+            }
+            chunk++;
+        }
+        return encodedMsgs;
     }
 
     private BigInteger[] xgcd(BigInteger a, BigInteger b){
@@ -182,7 +152,7 @@ public class RSA {
     private BigInteger makePrime(String seed) {
         Random rnd = new Random();
         rnd.setSeed(stringToSeed(seed));
-        int bitLength = 512;
+        int bitLength = 2048;
         return BigInteger.probablePrime(bitLength, rnd);
     }
 }

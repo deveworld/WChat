@@ -93,6 +93,7 @@ public class GuiField {
         Box yBox1 = Box.createVerticalBox();
 
         JLabel label = new JLabel(labelS);
+        label.setHorizontalAlignment(JLabel.CENTER);
         label.setFont(font);
 
         JTextField field = new JTextField();

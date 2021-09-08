@@ -9,6 +9,7 @@ import com.mcsim415.wchat.socketHandler.SocketIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class chatSendThread extends Thread {
@@ -28,16 +29,12 @@ public class chatSendThread extends Thread {
         String[] sendChats = rsa.encrypt(chat);
         for (String sendChat:sendChats) {
             try {
-                if (sendChats.length == 1) {
-                    socketIO.send(sendChat);
+                if (i == 1) {
+                    socketIO.send("|||"+sendChat); // FIST
+                } else if (i == sendChats.length) {
+                    socketIO.send("|\\|"+sendChat); // END
                 } else {
-                    if (i == 1) {
-                        socketIO.send("|||"+sendChat); // FIST
-                    } else if (i == sendChats.length) {
-                        socketIO.send("|\\|"+sendChat); // END
-                    } else {
-                        socketIO.send("|/|"+sendChat); // MIDDLE
-                    }
+                    socketIO.send("|/|"+sendChat); // MIDDLE
                 }
             } catch (IOException e) {
                 WChatGui.getInstance().home();

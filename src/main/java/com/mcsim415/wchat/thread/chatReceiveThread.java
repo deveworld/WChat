@@ -31,26 +31,21 @@ public class chatReceiveThread extends Thread {
         while (true) {
             try {
                 String receive = socketIO.receive();
-                if (receive.contains("|||") || receive.contains("|/|") || receive.contains("|\\|")) {
-                    if (receive.contains("|||")) {
-                        receive = receive.replace("|||", "");
-                        receive = rsa.decrypt(receive);
-                        data = new StringBuilder(receive);
-                        continue;
-                    } else if (receive.contains("|/|")) {
-                        receive = receive.replace("|/|", "");
-                        receive = rsa.decrypt(receive);
-                        Objects.requireNonNull(data).append(receive);
-                        continue;
-                    } else {
-                        receive = receive.replace("|\\|", "");
-                        receive = rsa.decrypt(receive);
-                        Objects.requireNonNull(data).append(receive);
-                        receive = Objects.requireNonNull(data).toString();
-                        data = null;
-                    }
-                } else {
+                if (receive.contains("|||")) {
+                    receive = receive.replace("|||", "");
+                    data = new StringBuilder(receive);
+                    continue;
+                } else if (receive.contains("|/|")) {
+                    receive = receive.replace("|/|", "");
                     receive = rsa.decrypt(receive);
+                    Objects.requireNonNull(data).append(receive);
+                    continue;
+                } else {
+                    receive = receive.replace("|\\|", "");
+                    receive = rsa.decrypt(receive);
+                    Objects.requireNonNull(data).append(receive);
+                    receive = rsa.decodeMsg(data.toString());
+                    data = null;
                 }
                 final int size = 380;
                 final int maximumSize = size-150;

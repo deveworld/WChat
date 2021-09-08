@@ -1,7 +1,6 @@
 package com.mcsim415.wchat.gui;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 
 public class WChatGui extends JFrame {
@@ -22,8 +21,9 @@ public class WChatGui extends JFrame {
             e.printStackTrace();
         }
         getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+        setMinimumSize(new Dimension(480, 750));
+        setMaximumSize(new Dimension(600, 900));
         setSize(480, 750);
-        setResizable(false);
         setLocationRelativeTo(null);
 
         JPanel panel = new GuiMain().MainPanel;

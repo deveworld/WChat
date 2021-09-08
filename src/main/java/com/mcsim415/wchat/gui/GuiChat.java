@@ -31,7 +31,7 @@ public class GuiChat {
     }
 
     private void setupUI() {
-        Font customFont = new Font("Comic Sans MS", Font.PLAIN, 20);
+        Font customFont = new Font("Comic Sans MS", Font.PLAIN, 30);
         ChatPanel = new JPanel();
         ChatPanel.setLayout(new BoxLayout(ChatPanel, BoxLayout.Y_AXIS));
 
@@ -49,7 +49,7 @@ public class GuiChat {
         JButton exitButton, sendButton;
 
         try {
-            Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("exit.png"))).getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+            Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("exit.png"))).getScaledInstance(30, 30, Image.SCALE_SMOOTH);
             exitButton = new JButton(new ImageIcon(img));
             exitButton.setBackground(new Color(255, 255, 255));
         } catch (IOException e) {
@@ -73,6 +73,7 @@ public class GuiChat {
 
         JTextArea sendTextArea = new JTextArea();
         sendTextArea.setFont(sendTextArea.getFont().deriveFont(20f));
+        sendTextArea.setLineWrap(true);
         sendTextArea.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -144,8 +145,8 @@ public class GuiChat {
         });
 
         JScrollPane sendText = new JScrollPane(sendTextArea);
-        sendText.setPreferredSize(new Dimension(700, 70));
-        sendText.setMaximumSize(new Dimension(700, 70));
+        sendText.setPreferredSize(new Dimension(5000, 70));
+        sendText.setMaximumSize(new Dimension(5000, 70));
         sendText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         sendText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         sendText.getVerticalScrollBar().setUnitIncrement(1);

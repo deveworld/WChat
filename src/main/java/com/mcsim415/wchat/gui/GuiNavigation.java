@@ -19,7 +19,7 @@ public class GuiNavigation {
         NavigationBox = Box.createHorizontalBox();
 
         JLabel panelLabel = new JLabel(panelText);
-        panelLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 20));
+        panelLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 35));
 
         NavigationBox.add(Box.createHorizontalGlue());
         NavigationBox.add(panelLabel);
@@ -27,12 +27,12 @@ public class GuiNavigation {
         if (!isHome) {
             JButton backButton;
             try {
-                Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("back.png"))).getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+                Image img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("back.png"))).getScaledInstance(35, 35, Image.SCALE_SMOOTH);
                 backButton = new JButton(new ImageIcon(img));
                 backButton.setBackground(new Color(255, 255, 255));
             } catch (IOException e) {
                 backButton = new JButton("Back");
-                backButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 20));
+                backButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 35));
             }
             backButton.addActionListener(e -> WChatGui.getInstance().home());
             NavigationBox.add(backButton);
